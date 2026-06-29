@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="컨디션">
+<meta name="theme-color" content="#F3F1EB">
+<title>지속 가능한 컨디션 기록</title>
+<style>
+  :root{
+    --paper:#F3F1EB; --panel:#FBFAF6; --ink:#1E2530; --ink2:#5A6472;
+    --line:#E2DED4; --good:#2F7D6B; --watch:#BE8420; --warn:#B14A38;
+    --accent:#33506B; --shadow:0 1px 2px rgba(30,37,48,.05),0 8px 24px rgba(30,37,48,.05);
+    --mono:ui-monospace,"SF Mono",Menlo,"Cascadia Code",monospace;
+    --sans:"Apple SD Gothic Neo","Malgun Gothic","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper)}
+  body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  #app{max-width:720px;margin:0 auto;padding:18px 16px 40px}
+  h1{font-size:19px;margin:0;letter-spacing:-.01em;font-weight:700}
+  h2{margin:0}
+  p{margin:0;line-height:1.45}
+  .sub{font-size:12.5px;color:var(--ink2)}
+  .muted{color:var(--ink2);font-weight:400}
+  .small{font-size:11.5px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+  section{margin-top:20px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .pulse{width:12px;height:12px;border-radius:50%;background:var(--good);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,125,107,.4)}70%{box-shadow:0 0 0 9px rgba(47,125,107,0)}100%{box-shadow:0 0 0 0 rgba(47,125,107,0)}}
+  @media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);font-weight:700;margin-bottom:10px}
+  .eyebrow.flat{margin-bottom:0}
+  .hero{display:grid;grid-template-columns:1fr 1.4fr;gap:12px}
+  .streak{padding:16px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .streak-num{font-family:var(--mono);font-size:46px;line-height:1;font-weight:600;color:var(--good)}
+  .streak-label{font-size:12px;color:var(--ink2);margin-top:6px}
+  .streak-foot{font-size:11px;color:var(--ink2);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);width:100%}
+  .wprog{padding:16px;display:flex;flex-direction:column;justify-content:center}
+  .wprog-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+  .wprog-now{font-family:var(--mono);font-size:34px;font-weight:600;line-height:1}
+  .wprog-now span{font-size:15px;color:var(--ink2)}
+  .wprog-sub{font-size:12px;color:var(--ink2);margin-top:4px}
+  .wprog-goal{font-size:12px;color:var(--ink2);font-family:var(--mono)}
+  .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--good));border-radius:99px;transition:width .6s ease}
+  .vitals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .vital{padding:13px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);position:relative;overflow:hidden}
+  .vital::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ink2)}
+  .vital.good::before{background:var(--good)} .vital.watch::before{background:var(--watch)} .vital.warn::before{background:var(--warn)}
+  .vital .vk{font-size:10.5px;color:var(--ink2)}
+  .vital .vv{font-family:var(--mono);font-size:23px;font-weight:600;margin-top:3px}
+  .vital .vs{font-size:10px;margin-top:3px;font-weight:600}
+  .vital.good .vs{color:var(--good)} .vital.watch .vs{color:var(--watch)} .vital.warn .vs{color:var(--warn)} .vital.none .vs{color:var(--ink2)}
+  .zone-card{padding:16px}
+  .zone-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .zones{display:flex;gap:4px}
+  .zband{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:10px;color:#fff}
+  .zband b{display:block;font-family:var(--mono);font-size:12.5px;margin-top:2px;font-weight:600}
+  .zband.target{outline:2px solid var(--ink);outline-offset:2px}
+  .zone-note{font-size:12px;color:var(--ink2);margin-top:12px;padding-top:12px;border-top:1px solid var(--line);line-height:1.5}
+  .log{padding:16px}
+  .log-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .datepick{font-family:var(--mono);font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{font-size:12px;color:var(--ink2);display:flex;flex-direction:column;gap:5px}
+  input,select{font-family:var(--sans);font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);width:100%}
+  input[type=number]{font-family:var(--mono)}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .workout-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin-top:10px}
+  .checks{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .chk{font-family:var(--sans);font-size:12.5px;padding:8px 12px;border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:99px;cursor:pointer;transition:.15s}
+  .chk.on{background:var(--good);border-color:var(--good);color:#fff}
+  .log-actions{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .saved{font-size:12px;color:var(--good);opacity:0;transition:.3s}
+  .saved.show{opacity:1}
+  button{cursor:pointer;font-family:var(--sans)}
+  .primary{background:var(--ink);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600}
+  .primary:active{background:#2b3340}
+  .ghost{background:transparent;border:1px solid var(--line);color:var(--ink2);padding:8px 14px;border-radius:10px;font-size:12.5px}
+  .trends{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .spark{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  .spark-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .spark-title{font-size:12px;color:var(--ink2)}
+  .spark-last{font-family:var(--mono);font-size:16px;font-weight:600}
+  .spark svg{width:100%;height:46px;display:block}
+  .spark .empty{font-size:11px;color:var(--ink2);padding:14px 0;text-align:center}
+  .plan{padding:16px}
+  .plan ul{margin:10px 0 0;padding-left:18px}
+  .plan li{font-size:13px;margin-bottom:7px;color:var(--ink);line-height:1.5}
+  .disclaimer{font-size:11px;color:var(--ink2);margin-top:12px;padding-top:12px;border-top:1px solid var(--line);line-height:1.5}
+  .foot{margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .modal-bg{position:fixed;inset:0;background:rgba(30,37,48,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal-bg.show{display:flex}
+  .modal{padding:20px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:12px;background:var(--panel)}
+  @media(max-width:560px){
+    .hero{grid-template-columns:1fr}.vitals{grid-template-columns:repeat(2,1fr)}
+    .trends{grid-template-columns:1fr}.workout-row{grid-template-columns:1fr}
+    .zones{flex-wrap:wrap}.zband{min-width:60px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="pulse" aria-hidden="true"></span>
+      <div><h1>지속 가능한 컨디션 기록</h1><p class="sub" id="todayLabel">—</p></div>
+    </div>
+    <button class="ghost" id="settingsBtn">설정</button>
+  </header>
+
+  <section class="hero">
+    <div class="streak card">
+      <div class="streak-num" id="streakNum">—</div>
+      <div class="streak-label">연속 무음주 일수</div>
+      <div class="streak-foot" id="weekDrink">이번 주 음주 — / 목표 ≤ 2일</div>
+    </div>
+    <div class="wprog card">
+      <div class="wprog-top">
+        <div><div class="wprog-now" id="weightNow">— <span>kg</span></div><div class="wprog-sub" id="weightDelta">기록을 시작해 보세요</div></div>
+        <div class="wprog-goal" id="weightGoal">목표 — kg</div>
+      </div>
+      <div class="bar"><div class="bar-fill" id="weightBar"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="eyebrow">오늘의 지표</h2>
+    <div class="vitals" id="vitals"></div>
+  </section>
+
+  <section class="card zone-card">
+    <div class="zone-head">
+      <h2 class="eyebrow flat">심박존 <span id="hrmax" class="muted"></span></h2>
+      <span class="muted small">지속 가능한 토대 = Z2</span>
+    </div>
+    <div class="zones" id="zones"></div>
+    <p class="zone-note">이틀 전 달리기 맥박 ~150은 Z4(역치)에 가깝습니다. 무릎과 심장 부담을 줄이려면 <strong>Z2 구간</strong>에서 더 천천히 뛰는 편이 좋습니다.</p>
+  </section>
+
+  <section class="card log">
+    <div class="log-head"><h2 class="eyebrow flat">오늘 기록</h2><input type="date" id="logDate" class="datepick"></div>
+    <div class="grid">
+      <label>체중 (kg)<input type="number" step="0.1" id="f_weight" inputmode="decimal"></label>
+      <label>체지방 (%)<input type="number" step="0.1" id="f_bf" inputmode="decimal"></label>
+      <label>수축기 혈압<input type="number" id="f_sys" inputmode="numeric"></label>
+      <label>이완기 혈압<input type="number" id="f_dia" inputmode="numeric"></label>
+      <label>공복혈당<input type="number" id="f_glu" inputmode="numeric"></label>
+      <label>안정 시 맥박<input type="number" id="f_rhr" inputmode="numeric"></label>
+      <label>걸음 수<input type="number" id="f_steps" inputmode="numeric"></label>
+      <label>음주 (잔/병 환산)<input type="number" step="0.5" id="f_drink" inputmode="decimal" placeholder="안 마심=0"></label>
+    </div>
+    <div class="workout-row">
+      <label>운동<select id="f_wtype">
+        <option value="">없음</option><option value="walk">빠른 걷기</option><option value="run">달리기</option>
+        <option value="bike">자전거</option><option value="strength">근력</option><option value="other">기타</option>
+      </select></label>
+      <label>시간(분)<input type="number" id="f_wmin" inputmode="numeric"></label>
+      <label>평균 맥박<input type="number" id="f_whr" inputmode="numeric"></label>
+    </div>
+    <div class="checks">
+      <button class="chk" data-k="protein">단백질 챙김</button>
+      <button class="chk" data-k="veg">채소 챙김</button>
+      <button class="chk" data-k="nolate">늦은 폭식 안 함</button>
+    </div>
+    <div class="log-actions"><button class="primary" id="saveBtn">저장</button><span class="saved" id="savedMsg"></span></div>
+  </section>
+
+  <section>
+    <h2 class="eyebrow">추세 <span class="muted small" id="trendRange"></span></h2>
+    <div class="trends" id="trends"></div>
+  </section>
+
+  <section class="card plan">
+    <h2 class="eyebrow flat">내 원칙</h2>
+    <ul>
+      <li><b>술 빈도부터 절반.</b> 주 3~4회 → 1~2회. 마시는 날은 한 종류로, 양은 절반.</li>
+      <li><b>매 끼 단백질 손바닥 1~1.5개.</b> 살코기·생선·계란·두부. 밥은 2/3공기.</li>
+      <li><b>저충격 유산소 + 하체 근력</b>으로 무릎 보호. 통증 신호 오면 즉시 강도 낮추기.</li>
+      <li><b>천천히, 오래.</b> 한 달 약 2kg가 지속 가능한 속도.</li>
+    </ul>
+    <p class="disclaimer">이 앱은 기록·관찰 도구이며 의료 진단이 아닙니다. 안정 시 혈압 140 근처가 반복되거나 무릎 통증이 악화되면 진료를 받아보세요. 데이터는 이 기기에만 저장됩니다 — 가끔 내보내기로 백업하세요.</p>
+  </section>
+
+  <footer class="foot">
+    <button class="ghost" id="exportBtn">백업 내보내기</button>
+    <button class="ghost" id="importBtn">백업 불러오기</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </footer>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal card">
+    <h2 class="eyebrow flat">목표 설정</h2>
+    <label>나이<input type="number" id="s_age" inputmode="numeric"></label>
+    <label>시작 체중 (kg)<input type="number" step="0.1" id="s_start" inputmode="decimal"></label>
+    <label>목표 체중 (kg)<input type="number" step="0.1" id="s_goal" inputmode="decimal"></label>
+    <label>주간 음주 허용일<input type="number" id="s_drinkdays" inputmode="numeric"></label>
+    <div class="log-actions"><button class="primary" id="saveSettings">저장</button><button class="ghost" id="closeSettings">닫기</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---- device storage (localStorage with in-memory fallback) ----
+  var mem={};
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return (k in mem)?mem[k]:null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
+  function lsKeys(p){ try{ var o=[]; for(var i=0;i<localStorage.length;i++){var kk=localStorage.key(i); if(kk.indexOf(p)===0)o.push(kk);} return o; }catch(e){ return Object.keys(mem).filter(function(k){return k.indexOf(p)===0;}); } }
+
+  var LOG="health:log:", SET="health:settings";
+  var settings={age:53,start:98,goal:90,drinkDays:2};
+
+  function todayKey(d){ d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function fmtKDate(s){ var p=s.split("-"); return p[0].slice(2)+"."+p[1]+"."+p[2]+" ("+["일","월","화","수","목","금","토"][new Date(s).getDay()]+")"; }
+  function $(id){ return document.getElementById(id); }
+  function num(v){ v=parseFloat(v); return isNaN(v)?null:v; }
+
+  function statusBP(s,d){ if(s==null&&d==null)return["none","—",""]; var st="good",l="정상"; if(s>=140||d>=90){st="warn";l="높음";} else if(s>=130||d>=85){st="watch";l="주의";} else if(s>=120||d>=80){st="watch";l="약간 높음";} return[st,(s!=null?s:"–")+"/"+(d!=null?d:"–"),l]; }
+  function statusGlu(g){ if(g==null)return["none","—",""]; if(g>=126)return["warn",g,"높음"]; if(g>=100)return["watch",g,"경계"]; return["good",g,"정상"]; }
+  function statusRHR(h){ if(h==null)return["none","—",""]; if(h<50)return["watch",h,"낮음"]; if(h<=65)return["good",h,"양호"]; if(h<=75)return["watch",h,"약간 높음"]; return["warn",h,"높음"]; }
+  function statusSteps(s){ if(s==null)return["none","—",""]; if(s>=8000)return["good",(s/1000).toFixed(1)+"k","달성"]; if(s>=5000)return["watch",(s/1000).toFixed(1)+"k","조금 더"]; return["warn",(s/1000).toFixed(1)+"k","부족"]; }
+
+  function hrZones(age){ var max=Math.round(208-0.7*age); var pct=[[.5,.6],[.6,.7],[.7,.8],[.8,.9],[.9,1]]; return {max:max,bands:pct.map(function(p){return[Math.round(max*p[0]),Math.round(max*p[1])];})}; }
+  var ZCOL=["#7E97AB","#4E7E70","#BE8420","#B14A38","#7A2E22"], ZNAME=["Z1 회복","Z2 토대","Z3 템포","Z4 역치","Z5 최대"];
+
+  function allLogs(){ var keys=lsKeys(LOG),out=[]; keys.forEach(function(k){ var v=lsGet(k); if(v){try{out.push(JSON.parse(v));}catch(e){}} }); out.sort(function(a,b){return a.date<b.date?-1:1;}); return out; }
+
+  var checkState={protein:false,veg:false,nolate:false};
+
+  function renderVitals(log){ log=log||{}; var bp=statusBP(log.sys,log.dia),gl=statusGlu(log.glu),hr=statusRHR(log.rhr),st=statusSteps(log.steps);
+    var items=[["혈압",bp],["공복혈당",gl],["안정맥박",hr],["걸음",st]];
+    $("vitals").innerHTML=items.map(function(it){return '<div class="vital '+it[1][0]+'"><div class="vk">'+it[0]+'</div><div class="vv">'+it[1][1]+'</div><div class="vs">'+(it[1][2]||"미입력")+'</div></div>';}).join(""); }
+
+  function renderZones(){ var z=hrZones(settings.age); $("hrmax").textContent="(최대 ~"+z.max+")";
+    $("zones").innerHTML=z.bands.map(function(b,i){return '<div class="zband'+(i===1?" target":"")+'" style="background:'+ZCOL[i]+'">'+ZNAME[i]+'<b>'+b[0]+'–'+b[1]+'</b></div>';}).join(""); }
+
+  function renderWeight(logs){ var w=null; for(var i=logs.length-1;i>=0;i--){if(logs[i].weight!=null){w=logs[i].weight;break;}}
+    $("weightGoal").textContent="목표 "+settings.goal+" kg";
+    if(w==null){$("weightNow").innerHTML='— <span>kg</span>';$("weightDelta").textContent="기록을 시작해 보세요";$("weightBar").style.width="0";return;}
+    $("weightNow").innerHTML=w.toFixed(1)+' <span>kg</span>';
+    var total=settings.start-settings.goal,done=settings.start-w,pct=total>0?Math.max(0,Math.min(100,done/total*100)):0;
+    $("weightBar").style.width=pct+"%";
+    var lost=settings.start-w;
+    $("weightDelta").textContent=(lost>0?("시작 대비 -"+lost.toFixed(1)+"kg · 목표까지 "+Math.max(0,(w-settings.goal)).toFixed(1)+"kg"):("목표까지 "+Math.max(0,(w-settings.goal)).toFixed(1)+"kg")); }
+
+  function renderStreak(logs){ var map={}; logs.forEach(function(l){map[l.date]=l;});
+    var streak=0,d=new Date();
+    for(var j=0;j<400;j++){ var kk=todayKey(d),ll=map[kk]; if(ll&&ll.drink>0)break; if(ll&&ll.drink===0)streak++; d.setDate(d.getDate()-1); }
+    $("streakNum").textContent=streak;
+    var now=new Date(),day=(now.getDay()+6)%7,monday=new Date(now); monday.setDate(now.getDate()-day);
+    var cnt=0; for(var t=0;t<7;t++){var dd=new Date(monday);dd.setDate(monday.getDate()+t);var lg=map[todayKey(dd)];if(lg&&lg.drink>0)cnt++;}
+    $("weekDrink").textContent="이번 주 음주 "+cnt+"일 / 목표 ≤ "+settings.drinkDays+"일";
+    $("weekDrink").style.color=cnt>settings.drinkDays?"var(--warn)":"var(--ink2)"; }
+
+  function getColor(varStr){ var name=varStr.replace("var(","").replace(")",""); return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||"#33506B"; }
+  function spark(values,color){ if(!values.length)return '<div class="empty">데이터 없음</div>';
+    if(values.length===1)return '<svg viewBox="0 0 100 40"><circle cx="50" cy="20" r="3" fill="'+color+'"/></svg>';
+    var min=Math.min.apply(null,values),max=Math.max.apply(null,values),rng=(max-min)||1;
+    var pts=values.map(function(v,i){var x=i/(values.length-1)*100,y=36-((v-min)/rng)*32;return x.toFixed(1)+","+y.toFixed(1);});
+    return '<svg viewBox="0 0 100 40" preserveAspectRatio="none"><polyline fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" points="'+pts.join(" ")+'"/><circle cx="100" cy="'+(36-((values[values.length-1]-min)/rng)*32).toFixed(1)+'" r="2" fill="'+color+'"/></svg>'; }
+
+  function renderTrends(logs){ var recent=logs.slice(-30); $("trendRange").textContent=recent.length?"최근 "+recent.length+"일":"";
+    function series(f){return recent.map(f).filter(function(v){return v!=null;});}
+    var defs=[["체중",series(function(l){return l.weight;}),getColor("var(--accent)")],
+              ["수축기 혈압",series(function(l){return l.sys;}),getColor("var(--warn)")],
+              ["걸음 수",series(function(l){return l.steps;}),getColor("var(--good)")],
+              ["공복혈당",series(function(l){return l.glu;}),getColor("var(--watch)")]];
+    $("trends").innerHTML=defs.map(function(d){var last=d[1].length?d[1][d[1].length-1]:null;var lt=last==null?"—":(d[0]==="걸음 수"?(last/1000).toFixed(1)+"k":last);
+      return '<div class="spark"><div class="spark-head"><span class="spark-title">'+d[0]+'</span><span class="spark-last">'+lt+'</span></div>'+spark(d[1],d[2])+'</div>';}).join(""); }
+
+  function loadEntry(dateKey){ var v=lsGet(LOG+dateKey),l=v?JSON.parse(v):{};
+    $("f_weight").value=l.weight??"";$("f_bf").value=l.bf??"";$("f_sys").value=l.sys??"";$("f_dia").value=l.dia??"";
+    $("f_glu").value=l.glu??"";$("f_rhr").value=l.rhr??"";$("f_steps").value=l.steps??"";$("f_drink").value=l.drink??"";
+    $("f_wtype").value=l.wtype||"";$("f_wmin").value=l.wmin??"";$("f_whr").value=l.whr??"";
+    checkState={protein:!!(l.checks&&l.checks.protein),veg:!!(l.checks&&l.checks.veg),nolate:!!(l.checks&&l.checks.nolate)};
+    document.querySelectorAll(".chk").forEach(function(b){b.classList.toggle("on",checkState[b.dataset.k]);}); }
+
+  function refresh(){ var logs=allLogs(),tk=$("logDate").value||todayKey(),todayLog=null;
+    logs.forEach(function(l){if(l.date===tk)todayLog=l;});
+    renderVitals(todayLog||logs[logs.length-1]||{}); renderWeight(logs); renderStreak(logs); renderTrends(logs); renderZones(); }
+
+  function init(){ var s=lsGet(SET); if(s){try{settings=Object.assign(settings,JSON.parse(s));}catch(e){}}
+    var tk=todayKey(); $("logDate").value=tk; $("todayLabel").textContent=fmtKDate(tk)+" · 매일 한 줄이면 충분합니다";
+    loadEntry(tk); refresh();
+
+    document.querySelectorAll(".chk").forEach(function(b){b.addEventListener("click",function(){checkState[b.dataset.k]=!checkState[b.dataset.k];b.classList.toggle("on",checkState[b.dataset.k]);});});
+    $("logDate").addEventListener("change",function(){loadEntry($("logDate").value);refresh();});
+
+    $("saveBtn").addEventListener("click",function(){ var dateKey=$("logDate").value||todayKey();
+      var entry={date:dateKey,weight:num($("f_weight").value),bf:num($("f_bf").value),sys:num($("f_sys").value),dia:num($("f_dia").value),
+        glu:num($("f_glu").value),rhr:num($("f_rhr").value),steps:num($("f_steps").value),
+        drink:$("f_drink").value===""?null:num($("f_drink").value),wtype:$("f_wtype").value,wmin:num($("f_wmin").value),whr:num($("f_whr").value),
+        checks:Object.assign({},checkState)};
+      lsSet(LOG+dateKey,JSON.stringify(entry));
+      var m=$("savedMsg");m.textContent="저장됨 ✓";m.classList.add("show");setTimeout(function(){m.classList.remove("show");},1600);
+      refresh(); });
+
+    $("settingsBtn").addEventListener("click",function(){$("s_age").value=settings.age;$("s_start").value=settings.start;$("s_goal").value=settings.goal;$("s_drinkdays").value=settings.drinkDays;$("modal").classList.add("show");});
+    $("closeSettings").addEventListener("click",function(){$("modal").classList.remove("show");});
+    $("modal").addEventListener("click",function(e){if(e.target===$("modal"))$("modal").classList.remove("show");});
+    $("saveSettings").addEventListener("click",function(){settings.age=num($("s_age").value)||53;settings.start=num($("s_start").value)||98;settings.goal=num($("s_goal").value)||90;settings.drinkDays=num($("s_drinkdays").value)||2;lsSet(SET,JSON.stringify(settings));$("modal").classList.remove("show");refresh();});
+
+    $("exportBtn").addEventListener("click",function(){var blob=new Blob([JSON.stringify({settings:settings,logs:allLogs()},null,2)],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="health-backup-"+todayKey()+".json";a.click();});
+    $("importBtn").addEventListener("click",function(){$("importFile").click();});
+    $("importFile").addEventListener("change",function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var data=JSON.parse(r.result);if(data.settings){settings=Object.assign(settings,data.settings);lsSet(SET,JSON.stringify(settings));}if(data.logs){data.logs.forEach(function(l){if(l.date)lsSet(LOG+l.date,JSON.stringify(l));});}loadEntry($("logDate").value);refresh();alert("백업을 불러왔습니다.");}catch(err){alert("파일을 읽지 못했습니다.");}};r.readAsText(f);});
+  }
+  if(document.readyState!=="loading")init();else document.addEventListener("DOMContentLoaded",init);
+})();
+</script>
+</body>
+</html>
